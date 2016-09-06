@@ -81,6 +81,8 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class JavaAPIBotServlet extends HttpServlet {
 
+	private static final String TEMPLATE_MSG_DATA_SEPARATOR = "|";
+
 	private static final String PYTHON_NOT_FOUND_RESPONSE = "python_not_found_response";
 
 	private static final String QUESTION_SPLITTER = ":";
@@ -115,8 +117,9 @@ public class JavaAPIBotServlet extends HttpServlet {
 
 	private static final String HELP_QUERY = "help_query";
 
-	 private static final String IMG_URL = "https://absabankbot.herokuapp.com/images/absa.png";
-	//private static final String IMG_URL = "https://8ff4be10.ngrok.io/facebookJavabot-0.0.1-SNAPSHOT/images/barclaycard_50_resized.jpg";
+	private static final String IMG_URL = "https://absabankbot.herokuapp.com/images/absa.png";
+	// private static final String IMG_URL =
+	// "https://8ff4be10.ngrok.io/facebookJavabot-0.0.1-SNAPSHOT/images/barclaycard_50_resized.jpg";
 	private static final String WELCOME_TXT = "welcome";
 
 	private static final String ANSWER_BUTTON = "answer_button";
@@ -405,22 +408,55 @@ public class JavaAPIBotServlet extends HttpServlet {
 				genericPayload = new GenericTemplatePayload();
 
 				for (String msg : splitMessage) {
+					String[] templateSplitMessage = msg.split(TEMPLATE_MSG_DATA_SEPARATOR);
+					if (templateSplitMessage.length > 1) {
+						String imageURL = null;
+						if (templateSplitMessage[0] != null && !templateSplitMessage[0].equals("")) {
+							imageURL = templateSplitMessage[0];
+						} else {
+							imageURL = IMG_URL;
+						}
+						String welcomeText = null;
+						if (templateSplitMessage[1] != null && !templateSplitMessage[1].equals("")) {
+							welcomeText = templateSplitMessage[1];
+						} else {
+							welcomeText = factory.getString(WELCOME_TXT);
+						}
+						String subtitle = null;
+						if (templateSplitMessage[2] != null && !templateSplitMessage[2].equals("")) {
+							subtitle = templateSplitMessage[2];
+						} else {
+							subtitle = factory.getString("");
+						}
 
-					PostbackButton postback = new PostbackButton(factory.getString(ANSWER_BUTTON), msg);
+						String itemUrl = null;
+						if (templateSplitMessage[3] != null && !templateSplitMessage[3].equals("")) {
+							itemUrl = templateSplitMessage[3];
+						} else {
+							itemUrl = factory.getString("");
+						}
+						Bubble bubble = new Bubble(welcomeText);
 
-					Bubble bubble = new Bubble(factory.getString(WELCOME_TXT));
+						bubble.setImageUrl(imageURL);
 
-					bubble.setImageUrl(IMG_URL);
+						// bubble.setImageUrl("http://53bde1b4.ngrok.io/facebookJavabot-0.0.1-SNAPSHOT/images/barclaycard_logo.png");
 
-					// bubble.setImageUrl("http://53bde1b4.ngrok.io/facebookJavabot-0.0.1-SNAPSHOT/images/barclaycard_logo.png");
+						bubble.setItemUrl(itemUrl);
 
-					bubble.setItemUrl(link);
+						bubble.setSubtitle(subtitle);
+						PostbackButton[] postbackButton = null;
+						for (int i = 4; i < templateSplitMessage.length; i++) {
+							postbackButton[i - 4] = new PostbackButton(templateSplitMessage[i], subtitle);
+							bubble.addButton(postbackButton[i - 4]);
+						}
+						// PostbackButton postback = new
+						// PostbackButton(factory.getString(ANSWER_BUTTON),
+						// msg);
 
-					bubble.setSubtitle(msg);
+						// bubble.addButton(postback);
 
-					bubble.addButton(postback);
-
-					genericPayload.addBubble(bubble);
+						genericPayload.addBubble(bubble);
+					}
 
 				}
 
