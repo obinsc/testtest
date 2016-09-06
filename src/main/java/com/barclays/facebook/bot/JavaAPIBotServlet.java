@@ -3,7 +3,10 @@ package com.barclays.facebook.bot;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 
@@ -81,7 +84,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class JavaAPIBotServlet extends HttpServlet {
 
-	private static final String TEMPLATE_MSG_DATA_SEPARATOR = "|";
+	private static final String TEMPLATE_MSG_DATA_SEPARATOR = "\\|";
 
 	private static final String PYTHON_NOT_FOUND_RESPONSE = "python_not_found_response";
 
@@ -372,7 +375,7 @@ public class JavaAPIBotServlet extends HttpServlet {
 
 		String[] splitMessage = textMessage.split(QUESTION_SPLITTER);
 
-		if (splitMessage.length > 1) {
+		//if (splitMessage.length > 1) {
 
 			if (splitMessage[0].equals(BUTTON_TMP_IDENTIFIER)) {
 
@@ -403,12 +406,12 @@ public class JavaAPIBotServlet extends HttpServlet {
 
 				message = new Message(template);
 
-			} else {
-
+			} else if(splitMessage[0].equals("$$")) {
+				
 				genericPayload = new GenericTemplatePayload();
 
 				for (String msg : splitMessage) {
-					String[] templateSplitMessage = msg.split(TEMPLATE_MSG_DATA_SEPARATOR);
+					String[] templateSplitMessage = msg.split(Pattern.quote("|"));
 					if (templateSplitMessage.length > 1) {
 						String imageURL = null;
 						if (templateSplitMessage[0] != null && !templateSplitMessage[0].equals("")) {
@@ -444,10 +447,10 @@ public class JavaAPIBotServlet extends HttpServlet {
 						bubble.setItemUrl(itemUrl);
 
 						bubble.setSubtitle(subtitle);
-						PostbackButton[] postbackButton = null;
+						List<PostbackButton> postbackButton = new ArrayList<PostbackButton>();
 						for (int i = 4; i < templateSplitMessage.length; i++) {
-							postbackButton[i - 4] = new PostbackButton(templateSplitMessage[i], subtitle);
-							bubble.addButton(postbackButton[i - 4]);
+							 
+							bubble.addButton(new PostbackButton(templateSplitMessage[i], subtitle));
 						}
 						// PostbackButton postback = new
 						// PostbackButton(factory.getString(ANSWER_BUTTON),
@@ -464,9 +467,9 @@ public class JavaAPIBotServlet extends HttpServlet {
 
 				message = new Message(template);
 
-			}
+			}else {
 
-		} else {
+		//} else {
 
 			if (textMessage.length() > 320)
 
